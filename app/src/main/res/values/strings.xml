@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">LunaVideo</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="view_error">View Error</string>
+    <string name="view_loading">View Loading</string>
+    <string name="view_no_content">View No Content</string>
+
+    <string name="string_my_videos">My Videos</string>
+    <string name="string_view_mode">View</string>
+</resources>

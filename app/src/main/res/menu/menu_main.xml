@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.lunavideo.lunavideo.ui.core.MainActivity">
+    <!-- "Mark Favorite", should appear as action button if possible -->
+    <item
+        android:id="@+id/action_view_mode"
+        android:enabled="true"
+        android:icon="@mipmap/ic_list_view"
+        android:title="@string/string_view_mode"
+        android:visible="true"
+        app:showAsAction="always" />
+
+</menu>

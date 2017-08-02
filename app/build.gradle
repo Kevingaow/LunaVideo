@@ -1,0 +1,102 @@
+apply plugin: 'com.android.application' //or apply plugin: 'java'
+apply plugin: 'me.tatarka.retrolambda'
+
+
+def getBuildId() {
+    if (project.hasProperty("versionCode"))
+        return "$versionCode".toInteger()
+
+    def date = GregorianCalendar.getInstance(TimeZone.getTimeZone("UTC"))
+    def year = date.get(GregorianCalendar.YEAR) % 100
+    def month = date.get(GregorianCalendar.MONTH) + 1
+    def day = date.get(GregorianCalendar.DAY_OF_MONTH)
+    def minutes = date.get(GregorianCalendar.HOUR_OF_DAY) * 10 + date.get(GregorianCalendar.MINUTE) / 6
+
+    return (year * 10000000 + month * 100000 + day * 1000 + minutes).toInteger()
+}
+
+def getBuildVersionName() {
+    def major = project.hasProperty("versionMajor") ? "$versionMajor" : 1
+    def minor = project.hasProperty("versionMinor") ? "$versionMinor" : 0
+    def patch = project.hasProperty("versionPatch") ? "$versionPatch" : 0
+
+    return "${major}.${minor}.${patch}"
+}
+
+def official = project.hasProperty("official")
+
+
+
+
+android {
+    def buildId = getBuildId()
+
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.lunavideo.lunavideo"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode buildId
+        versionName official ? "${getBuildVersionName()}-${buildId}.r${gitHeadId()}" : "${getBuildVersionName()}-${buildId}"
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-DEBUG'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'me.tatarka:gradle-retrolambda:3.6.1'
+    }
+}
+
+repositories {
+    // MultiStateView
+    maven { url 'https://jitpack.io' }
+    maven { url 'https://maven.google.com' }
+    mavenCentral()
+}
+
+
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile rootProject.ext.appCompat
+    compile rootProject.ext.rxlifecycleComponents
+
+    compile rootProject.ext.butterknife
+    annotationProcessor rootProject.ext.butterknifecompiler
+
+    compile rootProject.ext.eventbus
+    compile rootProject.ext.timber
+    compile rootProject.ext.retrolambda
+    compile rootProject.ext.rxjava
+
+
+    compile 'com.github.Kennyc1012:MultiStateView:1.3.0'
+    compile 'com.etsy.android.grid:library:1.0.5'
+
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:design:25.3.1'
+
+}
