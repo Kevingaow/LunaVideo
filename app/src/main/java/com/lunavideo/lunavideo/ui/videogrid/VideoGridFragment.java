@@ -1,5 +1,6 @@
 package com.lunavideo.lunavideo.ui.videogrid;
 
+import android.animation.PropertyValuesHolder;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,13 +16,17 @@ import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 
+import com.lunavideo.lunavideo.LunaVideo;
 import com.lunavideo.lunavideo.R;
 import com.lunavideo.lunavideo.data.entity.LunaVideoThumbEntity;
 import com.lunavideo.lunavideo.ui.base.fragment.MvpBaseFragment;
+import com.lunavideo.lunavideo.utils.Constant;
 import com.lunavideo.lunavideo.utils.Future;
 import com.lunavideo.lunavideo.utils.ThreadPool;
 import com.lunavideo.lunavideo.widget.LunaVideoGridView;
@@ -34,6 +39,7 @@ import com.kennyc.view.MultiStateView;
 
 
 import butterknife.BindView;
+import butterknife.internal.Utils;
 import timber.log.Timber;
 
 /**
@@ -49,7 +55,7 @@ public class VideoGridFragment extends MvpBaseFragment<VideoGridMvpView, VideoGr
     @BindView(R.id.grid_view)
     LunaVideoGridView mGridView;
 
-    @BindView(R.id.anim_thumb)
+//    @BindView(R.id.anim_thumb)
     ImageView mAnimThumb;
 
     VideoGridAdapter mAdapter;
@@ -57,9 +63,12 @@ public class VideoGridFragment extends MvpBaseFragment<VideoGridMvpView, VideoGr
     HashMap<LunaVideoThumbEntity, Future<Bitmap>> mEntities = new HashMap<>();
     ThreadPool mThreadPool = new ThreadPool();
 
+    LayoutInflater mLayoutInflater;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Timber.i("onCreate");
+        mLayoutInflater = LayoutInflater.from(LunaVideo.getInstance());
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
     }
@@ -107,7 +116,8 @@ public class VideoGridFragment extends MvpBaseFragment<VideoGridMvpView, VideoGr
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ((mAnimThumb.getVisibility() == View.VISIBLE)
+
+        if (mAnimThumb != null && (mAnimThumb.getVisibility() == View.VISIBLE)
                 && keyCode == KeyEvent.KEYCODE_BACK) {
             mAnimThumb.setVisibility(View.GONE);
             mMultiStateView.setVisibility(View.VISIBLE);
@@ -136,18 +146,55 @@ public class VideoGridFragment extends MvpBaseFragment<VideoGridMvpView, VideoGr
 
         LunaVideoThumbEntity entity = (LunaVideoThumbEntity) parent.getItemAtPosition(position);
 
-        RelativeLayout container = (RelativeLayout) view;
+        RelativeLayout container = (RelativeLayout) parent.getParent().getParent();
         Future<Bitmap> f = mEntities.get(entity);
+
+        LinearLayout ll = (LinearLayout) mLayoutInflater.inflate(R.layout.zoomview, parent, false);
+        ll.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT));
+
+        mAnimThumb = (ImageView) ll.findViewById(R.id.anim_thumb);
+        mAnimThumb.setPadding(1, 1, 1, 1);
+        ll.setX(view.getX());
+        ll.setY(view.getY());
+        container.addView(ll);
+
+
+        Bitmap bitmap = null;
+
         if (f.isDone()) {
-            mAnimThumb.setImageBitmap(entity.getCover());
+            bitmap = entity.getCover();
         } else {
-            mAnimThumb.setImageBitmap(f.get());
+            bitmap = f.get();
         }
 
-//        ImageView v = (ImageView)container.findViewById(R.id.thumb);
+        mAnimThumb.setImageBitmap(bitmap);
+
+
+        int width = (bitmap.getWidth() > bitmap.getHeight()) ? bitmap.getHeight() : bitmap.getWidth();
+
+        float scaleX = (float) Constant.ThumbnailMaxSize / bitmap.getWidth();
+        float scaleY = (float) Constant.ThumbnailMaxSize / bitmap.getHeight();
+
+        mAnimThumb.setScaleX(scaleX);
+        mAnimThumb.setScaleY(scaleY);
+        mAnimThumb.setPivotX(0);
+        mAnimThumb.setPivotY(0);
+        mAnimThumb.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
 
         mAnimThumb.setVisibility(View.VISIBLE);
+
+/*
+        PropertyValuesHolder valuesHolderX =
+                PropertyValuesHolder.ofFloat(View.TRANSLATION_X, ll.getX(), 0);
+        PropertyValuesHolder valuesHolderY =
+                PropertyValuesHolder.ofFloat(View.TRANSLATION_Y, ll.getY(), 0);
+        PropertyValuesHolder valuesHolderScaleX =
+                PropertyValuesHolder.ofFloat(View.SCALE_X, mWidthScale, 1f);
+        PropertyValuesHolder valuesHolderScaleY =
+                PropertyValuesHolder.ofFloat(View.SCALE_Y, mHeightScale, 1f);
+*/
         mMultiStateView.setVisibility(View.INVISIBLE);
     }
 

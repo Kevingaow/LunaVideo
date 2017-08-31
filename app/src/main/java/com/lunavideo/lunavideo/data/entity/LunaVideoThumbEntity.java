@@ -107,7 +107,7 @@ public class LunaVideoThumbEntity implements ThreadPool.Job<Bitmap>{
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         retriever.setDataSource(mPath);
         mCover = retriever.getFrameAtTime();
-        Timber.d("Cover received, W:%d, H:%d", mCover.getWidth(), mCover.getHeight());
-        return null;
+        Timber.d("Cover received, W:%d, H:%d, ID:%d", mCover.getWidth(), mCover.getHeight(), mId);
+        return mCover;
     }
 }
